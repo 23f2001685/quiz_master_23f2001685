@@ -1,0 +1,4 @@
+frontend/.vscode
+frontend/node_modules
+backend/__pycache__
+backend/application/__pycache__
