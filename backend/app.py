@@ -6,24 +6,26 @@ from flask_security import Security, SQLAlchemyUserDatastore
 
 from application.config import LocalDevConfig
 from application.database import db
-from application.models import User
+from application.models import User, Role
 
 migrate = Migrate()
+cors = CORS()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(LocalDevConfig)
     db.init_app(app)
-    migrate.init_app(app)
+    cors.init_app(app)
+    migrate.init_app(app, db)
     api = Api(app)
-    datastore = SQLAlchemyUserDatastore(db, User, None)
+    datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
         
     app.app_context().push()
     return app, api
 
 app, api = create_app()
-CORS(app)
+
 # Importing routes
 from application.routes import *
 
