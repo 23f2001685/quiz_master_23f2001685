@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
-from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security import Security, SQLAlchemyUserDatastore, hash_password
 
 from application.config import LocalDevConfig
 from application.database import db
@@ -25,6 +25,30 @@ def create_app():
     return app, api
 
 app, api = create_app()
+
+with app.app_context():
+    app.security.datastore.find_or_create_role(name="admin", description="Superuser of app")
+    app.security.datastore.find_or_create_role(name="user", description="General user of app")
+    db.session.commit()
+
+    if not app.security.datastore.find_user(email="admin@quizmaster.com"):
+        app.security.datastore.create_user(
+            email="admin@quizmaster.com",
+            password = hash_password("admin@1234"),
+            full_name = "Quiz Master",
+            roles=['admin']
+        )
+
+    if not app.security.datastore.find_user(email="user1@somemail.com"):
+        app.security.datastore.create_user(
+            email="user1@somemail.com",
+            password = hash_password("user@1234"),
+            full_name = "User 1",
+            roles=['user']
+        )
+    
+    db.session.commit()
+
 
 # Importing routes
 from application.routes import *
