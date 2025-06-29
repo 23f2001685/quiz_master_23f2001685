@@ -72,7 +72,7 @@ class Quiz(db.Model):
     time_duration = db.Column(db.Integer, nullable=False)  # Duration in minutes
     remarks = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
-    
+
     # Relationships
     chapter = relationship('Chapter', back_populates='quizzes')
     questions = relationship('Question', back_populates='quiz', cascade='all, delete-orphan')
@@ -92,7 +92,7 @@ class Question(db.Model):
     option3 = db.Column(db.String(255), nullable=False)
     option4 = db.Column(db.String(255), nullable=False)
     correct_option = db.Column(db.Integer, nullable=False)
-    
+
     # Relationships
     quiz = relationship('Quiz', back_populates='questions')
 
@@ -109,7 +109,7 @@ class QuizAttempt(db.Model):
     total_score = db.Column(db.Float, nullable=False)
     max_score = db.Column(db.Float, nullable=False)
     percentage = db.Column(db.Float, nullable=False)
-    
+
     # Relationships
     user = relationship('User', back_populates='quiz_attempts')
     quiz = relationship('Quiz', back_populates='attempts')

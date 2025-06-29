@@ -1,0 +1,85 @@
+<template>
+    <div class="card p-3 mt-4 mx-auto">
+        <div class="container">
+            <h2 class="mb-4 text-center">Register</h2>
+            <form @submit.prevent="register" class="mx-auto" style="max-width: 500px;">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" v-model="form.email" id="email" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" v-model="form.password" id="password" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name:</label>
+                    <input type="text" v-model="form.full_name" id="full_name" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label for="qualification" class="form-label">Qualification:</label>
+                    <input type="text" v-model="form.qualification" id="qualification" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label for="dob" class="form-label">Date of Birth:</label>
+                    <input type="date" v-model="form.dob" id="dob" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+        </div>
+        <div class="text-center mt-3">
+            <p>Already have an account? <router-link to="/login" class="text-primary">Login here</router-link></p>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name: 'Register',
+    data() {
+        return {
+            form: {
+                email: '',
+                password: '',
+                full_name: '',
+                qualification: '',
+                dob: '',
+            },
+        };
+    },
+    methods: {
+        async register() {
+            try {
+                await this.$store.dispatch('register', this.form);
+                alert('Registration successful! Please login.');
+                this.$router.push('/');
+            } catch (error) {
+                alert('Failed to register: ' + (error.response?.data?.message || error.message));
+            }
+        },
+    },
+    mounted() {
+        console.log();
+
+    }
+};
+</script>
+
+<style scoped>
+.form-control {
+    border-radius: 5px;
+}
+
+.card {
+  background: rgba(181, 177, 177, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(18, 19, 32, 0.557);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.509) !important;
+  max-width: 25em;
+}
+
+.btn-primary {
+    width: 100%;
+}
+</style>

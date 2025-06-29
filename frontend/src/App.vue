@@ -1,34 +1,62 @@
 <script>
-import axios from "axios";
+import { RouterView } from "vue-router";
+import NavBar from './components/NavBar.vue';
+import { mapGetters } from 'vuex';
 
-export default{
+export default {
+  name: 'App',
+  components: { RouterView, NavBar },
   data() {
     return {
-      message: "",
-    };
+      isAdmin: false,
+      isUser: false,
+      isUserActive: false,
+    }
   },
-  mounted() {
-    axios
-      .get("http://localhost:5000/test-api")  // Ensure the URL is correct
-      .then((response) => {
-        console.log("Response received:", response.data);
-        this.message = response.data.message; // Store API data
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+  computed: {
+    ...mapGetters(['getUser']),
   },
-};
+  async mounted() {
+    await this.$store.dispatch('fetchUser');
+    if (!this.getUser) {
+      this.$router.push('/login');
+      return;
+    }
+    if (this.getUser.error) {
+      alert(this.getUser.error);
+      this.$router.push('/login');
+      return;
+    }
+    const roles = await this.getUser.roles;
+    this.isAdmin = roles.includes('admin')
+    this.isUser = roles.includes('user')
+    if (!this.isAdmin) {
+      if (!this.getUser.active) {
+        alert('Please contact administrator as your account is blocked.')
+        this.$router.push('/login')
+      }
+    }
+  },
+  watch: {
+    getUser(newVal) {
+      if (!newVal) {
+        this.$router.push('/login');
+      }
+    }
+  }
+}
 
 </script>
 
 <template>
   <div>
-    <h1>Admin Page</h1>
-    <p>API Response: {{ message }}</p>
+    <NavBar v-if="getUser" :username="getUser ? getUser.full_name : 'Guest'" />
+    <RouterView />
   </div>
 </template>
 
 <style scoped>
-
+body {
+  font-family: Arial, sans-serif;
+}
 </style>

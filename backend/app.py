@@ -2,7 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
-from flask_security import Security, SQLAlchemyUserDatastore, hash_password
+from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security.utils import hash_password
 
 from application.config import LocalDevConfig
 from application.database import db
@@ -20,7 +21,7 @@ def create_app():
     api = Api(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
-        
+
     app.app_context().push()
     return app, api
 
@@ -46,15 +47,23 @@ with app.app_context():
             full_name = "User 1",
             roles=['user']
         )
-    
+
     db.session.commit()
 
 
 # Importing routes
 from application.routes import *
+from application.resources.auth import UserRegisterResource, UserProfileResource
+from application.resources.admin_resources import ChapterResource, QuestionResource, QuizResource, SubjectResource, UserDeactivateResource, UserListResource
 
-from application.resources import TestResource
-api.add_resource(TestResource, "/test-api")
+api.add_resource(UserRegisterResource, '/api/register')
+api.add_resource(UserProfileResource, '/api/profile')
+api.add_resource(UserListResource, '/api/users')
+api.add_resource(UserDeactivateResource, '/api/users/<int:user_id>/deactivate')
+api.add_resource(SubjectResource, '/api/subjects', '/api/subjects/<int:subject_id>')
+api.add_resource(ChapterResource, '/api/subjects/<int:subject_id>/chapters', '/api/subjects/<int:subject_id>/chapters/<int:c_id>')
+api.add_resource(QuizResource, '/api/quizzes', '/api/quizzes/<int:quiz_id>')
+api.add_resource(QuestionResource, '/api/quizzes/<int:quiz_id>/questions', '/api/quizzes/<int:quiz_id>/questions/<int:question_id>')
 
 app.app_context().push()
 
