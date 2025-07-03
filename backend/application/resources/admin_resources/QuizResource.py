@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import jsonify
 from flask_restful import Resource, marshal, marshal_with, reqparse, fields
-from flask_security import auth_required, roles_required
+from flask_security import auth_required, roles_required, roles_accepted
 from ...models import Chapter, Quiz
 from ...database import db
 from .QuestionResource import question_fields
@@ -29,7 +29,7 @@ class QuizResource(Resource):
     parser.add_argument('is_active', type=bool)
 
     @auth_required('token')
-    @roles_required('admin')
+    @roles_accepted('admin', 'user')
     @marshal_with(quiz_fields)
     def get(self, quiz_id=None):
 
@@ -89,7 +89,6 @@ class QuizResource(Resource):
             if not chapter:
                 return {"message": f"Chapter with ID {args['chapter_id']} not found"}, 404
             quiz.chapter_id = args['chapter_id']
-
         if args['date_of_quiz']:
             try:
                 quiz.date_of_quiz = datetime.strptime(args['date_of_quiz'], '%Y-%m-%d')

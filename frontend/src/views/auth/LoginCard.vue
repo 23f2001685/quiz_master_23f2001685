@@ -99,12 +99,6 @@ export default {
 
 <style scoped>
 .card {
-  background: rgba(181, 177, 177, 0.35);
-  box-shadow: 0 8px 32px 0 rgba(18, 19, 32, 0.557);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.509) !important;
   max-width: 25em;
 }
 

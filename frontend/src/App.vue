@@ -50,8 +50,12 @@ export default {
 
 <template>
   <div>
-    <NavBar v-if="getUser" :username="getUser ? getUser.full_name : 'Guest'" />
-    <RouterView />
+    <div style="position: sticky; top: 0; z-index: 1000;">
+      <NavBar v-if="getUser" :username="getUser ? getUser.full_name : 'Guest'" />
+    </div>
+    <div style="margin-top: 64px;">
+      <RouterView />
+    </div>
   </div>
 </template>
 

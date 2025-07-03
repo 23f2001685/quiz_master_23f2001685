@@ -58,11 +58,11 @@ export default {
   computed: {
     ...mapGetters([
       'getUser',
+      'getError',
       'getSubjects',
       'isModalVisible',
-      'newSubject',
       'modalAction',
-      'getError',
+      'newSubject',
     ]),
   },
   methods: {

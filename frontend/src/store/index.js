@@ -213,6 +213,8 @@ const store = createStore({
               'Authentication-Token': localStorage.getItem('auth_token'),
             },
           });
+          console.log('Fetched quizzes:', response.data);
+
         commit('SET_QUIZZES', response.data);
       } catch (error) {
         console.error('Error fetching quizzes:', error);
