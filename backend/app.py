@@ -8,6 +8,12 @@ from flask_security.utils import hash_password
 from application.config import LocalDevConfig
 from application.database import db
 from application.models import User, Role
+from application.resources.quiz_attempt import (
+    QuizAttemptResource,
+    QuizAttemptsResource,
+    QuizAttemptsStatsResource,
+    UserQuizAttemptsResource
+)
 
 migrate = Migrate()
 cors = CORS()
@@ -16,7 +22,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(LocalDevConfig)
     db.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, origins=["*"], supports_credentials=True)
     migrate.init_app(app, db)
     api = Api(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
@@ -26,29 +32,6 @@ def create_app():
     return app, api
 
 app, api = create_app()
-
-with app.app_context():
-    app.security.datastore.find_or_create_role(name="admin", description="Superuser of app")
-    app.security.datastore.find_or_create_role(name="user", description="General user of app")
-    db.session.commit()
-
-    if not app.security.datastore.find_user(email="admin@quizmaster.com"):
-        app.security.datastore.create_user(
-            email="admin@quizmaster.com",
-            password = hash_password("admin@1234"),
-            full_name = "Quiz Master",
-            roles=['admin']
-        )
-
-    if not app.security.datastore.find_user(email="user1@somemail.com"):
-        app.security.datastore.create_user(
-            email="user1@somemail.com",
-            password = hash_password("user@1234"),
-            full_name = "User 1",
-            roles=['user']
-        )
-
-    db.session.commit()
 
 
 # Importing routes
@@ -65,7 +48,34 @@ api.add_resource(ChapterResource, '/api/subjects/<int:subject_id>/chapters', '/a
 api.add_resource(QuizResource, '/api/quizzes', '/api/quizzes/<int:quiz_id>')
 api.add_resource(QuestionResource, '/api/quizzes/<int:quiz_id>/questions', '/api/quizzes/<int:quiz_id>/questions/<int:question_id>')
 
+api.add_resource(QuizAttemptsResource, '/api/quiz-attempts')
+api.add_resource(QuizAttemptResource, '/api/quiz-attempts/<int:attempt_id>')
+api.add_resource(UserQuizAttemptsResource, '/api/users/<int:user_id>/quiz-attempts')
+api.add_resource(QuizAttemptsStatsResource, '/api/quiz-attempts/stats')
+
 app.app_context().push()
 
 if __name__ == "__main__":
+    with app.app_context():
+        app.security.datastore.find_or_create_role(name="admin", description="Superuser of app")
+        app.security.datastore.find_or_create_role(name="user", description="General user of app")
+        db.session.commit()
+
+        if not app.security.datastore.find_user(email="admin@quizmaster.com"):
+            app.security.datastore.create_user(
+                email="admin@quizmaster.com",
+                password = hash_password("admin@1234"),
+                full_name = "Quiz Master",
+                roles=['admin']
+            )
+
+        if not app.security.datastore.find_user(email="user1@somemail.com"):
+            app.security.datastore.create_user(
+                email="user1@somemail.com",
+                password = hash_password("user@1234"),
+                full_name = "User 1",
+                roles=['user']
+            )
+
+        db.session.commit()
     app.run()

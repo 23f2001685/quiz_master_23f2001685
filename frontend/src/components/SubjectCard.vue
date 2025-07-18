@@ -28,20 +28,20 @@
       </table>
       <button class="btn btn-outline-primary w-100 mt-3" @click="openModal">+ Chapter</button>
     </div>
-    <ModalComponent v-if="isModalVisible" :title="modalTitle" :isVisible="isModalVisible" @save="saveChapter"
-      @cancel="closeModal" class="modal">
-      <form @submit.prevent="">
-        <div class="mb-3">
-          <label for="name" class="form-label">Name:</label>
-          <input type="text" v-model="newChapter.name" id="name" class="form-control" required />
-        </div>
-        <div class="mb-3">
-          <label for="description" class="form-label">Description:</label>
-          <textarea v-model="newChapter.description" id="description" rows="3" class="form-control"></textarea>
-        </div>
-      </form>
-    </ModalComponent>
   </div>
+  <ModalComponent v-if="isModalVisible" :title="modalTitle" :isVisible="isModalVisible" @save="saveChapter"
+    @cancel="closeModal" class="modal">
+    <form @submit.prevent="">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name:</label>
+        <input type="text" v-model="newChapter.name" id="name" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description:</label>
+        <textarea v-model="newChapter.description" id="description" rows="3" class="form-control"></textarea>
+      </div>
+    </form>
+  </ModalComponent>
 </template>
 
 <script>
@@ -52,6 +52,7 @@ export default {
   name: 'SubjectCard',
   props: ['subject'],
   components: { ModalComponent, Spinner },
+  emits: ['edit-subject', 'delete-subject'],
   data() {
     return {
       chapters: [],

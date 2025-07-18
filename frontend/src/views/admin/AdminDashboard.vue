@@ -8,7 +8,7 @@
         <SubjectCard
           :subject="subject"
           @edit-subject="editSubject(subject)"
-          @delete-subject="deleteSubject(subject.id)"
+          @delete-subject="delSubject(subject.id)"
         />
       </div>
     </main>
@@ -77,6 +77,18 @@ export default {
     logOut() {
       localStorage.clear();
       this.$router.push('/login');
+    },
+    delSubject(id) {
+      if (!confirm('Are you sure you want to delete this subject?')) {
+        return;
+      }
+      this.deleteSubject(id)
+        .then(() => {
+          this.$store.dispatch('fetchSubjects');
+        })
+        .catch((error) => {
+          console.error('Error deleting subject:', error);
+        });
     },
   },
   mounted() {

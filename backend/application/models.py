@@ -67,6 +67,7 @@ class Quiz(db.Model):
     __tablename__ = 'quizzes'
 
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapters.id'), nullable=False)
     date_of_quiz = db.Column(db.DateTime, nullable=False)
     time_duration = db.Column(db.Integer, nullable=False)  # Duration in minutes
@@ -76,7 +77,7 @@ class Quiz(db.Model):
     # Relationships
     chapter = relationship('Chapter', back_populates='quizzes')
     questions = relationship('Question', back_populates='quiz', cascade='all, delete-orphan')
-    attempts = relationship('QuizAttempt', back_populates='quiz')
+    attempts = relationship('QuizAttempt', back_populates='quiz', cascade="all, delete-orphan")
 
 class Question(db.Model):
     """
