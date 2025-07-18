@@ -7,9 +7,9 @@
           :class="$route.name == 'AdminDashboard' ? 'neonText ' : ''">Home</router-link>
         <router-link to="/quiz" class="grow text-decoration-none text-success me-3" v-if="isAdmin"
           :class="$route.name == 'QuizManagement' ? 'neonText ' : ''">Quiz</router-link>
-        <router-link to="/quiz" class="grow text-decoration-none text-success me-3" v-else
-          :class="$route.name == 'QuizManagement' ? 'neonText ' : ''">Scores</router-link>
-        <router-link to="/" class="grow text-decoration-none text-success me-3">Summary</router-link>
+        <router-link to="/scores" class="grow text-decoration-none text-success me-3" v-else
+          :class="$route.name == 'Scores' ? 'neonText ' : ''">Scores</router-link>
+        <router-link to="/summary " class="grow text-decoration-none text-success me-3">Summary</router-link>
       </nav>
       <span class="fs-3"><span class="fw-bold">Welcome, </span>{{ username }}</span>
       <router-link v-if="$route.name !== 'UserManagement' && isAdmin" class="routerLink btn btn-outline-primary"

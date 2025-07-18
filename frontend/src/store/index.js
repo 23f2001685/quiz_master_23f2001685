@@ -11,6 +11,7 @@ const store = createStore({
     isModalVisible: false,
     newSubject: { name: '', description: '' },
     newQuiz: {
+      title: '',
       remarks: '',
       chapter_id: null,
       date_of_quiz: "",
@@ -100,6 +101,8 @@ const store = createStore({
     },
   },
   actions: {
+
+    // Users
     async fetchUser({ commit }) {
       const auth_token = localStorage.getItem('auth_token')
       if (auth_token == null) return
@@ -188,6 +191,8 @@ const store = createStore({
         commit('SET_LOADING', false);
       }
     },
+
+    // Quiz + Subjects
     async fetchSubjects({ commit }) {
       commit('SET_LOADING', true)
       try {
@@ -310,7 +315,7 @@ const store = createStore({
     },
     async saveQuiz({ commit, state, dispatch }) {
       commit('SET_LOADING', true)
-      if (!state.newQuiz.remarks.trim()) {
+      if (!state.newQuiz.title.trim()) {
         commit('SET_ERROR', 'Please provide quiz name.');
         return;
       }
@@ -319,6 +324,7 @@ const store = createStore({
           await axios.put(
             `http://localhost:5000/api/quizzes/${state.newQuiz.id}`,
             {
+              title: state.newQuiz.title,
               remarks: state.newQuiz.remarks,
               chapter_id: state.newQuiz.chapter_id,
               date_of_quiz: state.newQuiz.date_of_quiz,
@@ -332,12 +338,16 @@ const store = createStore({
             }
           );
         } else {
+          console.log("Saving new quiz:", state.newQuiz);
+          const date = new Date(state.newQuiz.date_of_quiz);
+          const formattedDate = date.toISOString()//.slice(0, 10); // Format to YYYY-MM-DD (Pythonic)
           await axios.post(
             'http://localhost:5000/api/quizzes',
             {
+              title: state.newQuiz.title,
               remarks: state.newQuiz.remarks,
               chapter_id: state.newQuiz.chapter_id,
-              date_of_quiz: state.newQuiz.date_of_quiz,
+              date_of_quiz: formattedDate,
               time_duration: state.newQuiz.time_duration,
               is_active: state.newQuiz.is_active
             },
@@ -361,13 +371,15 @@ const store = createStore({
         dispatch('fetchQuizzes');
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Error saving quiz');
+        console.log('Error saving quiz:', error.response?.data?.message || error.message);
+
       } finally {
         commit('SET_LOADING', false)
       }
     },
     updateQuiz({ commit, state }, {quiz}) {
       const date = new Date(quiz.date_of_quiz);
-      const formattedDate = date.toISOString().split('T')[0];
+      const formattedDate = date.toISOString();
       commit('SET_NEW_QUIZ', {
         chapter_id: quiz.chapter_id,
         date_of_quiz: formattedDate,

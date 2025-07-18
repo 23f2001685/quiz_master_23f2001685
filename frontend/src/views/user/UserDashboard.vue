@@ -5,12 +5,64 @@
       <h2 class="mb-4">User Dashboard</h2>
     </div>
     <Toast ref="toastRef" />
-
-    <div :class="['card', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
-      <h4 class="text-center my-4">Upcoming Quizzes</h4>
-      <div class="table-responsive" v-if="getQuizzes && getQuizzes.length">
+    <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
+      <div class="table-responsive" v-if="activeQuizzes.length !== 0">
+        <h4 class="text-center text-dark my-4">Active Quizzes</h4>
         <table class="table table-bordered align-middle text-center">
-          <thead class="table-primary">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title - Chapter</th>
+              <th>End Time</th>
+              <th>Time Remaining</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="quiz in activeQuizzes" :key="quiz.id">
+              <td>{{ quiz.id }}</td>
+              <td>{{ quiz.title }} - {{ quiz.chapter }}</td>
+              <td>{{ formatEndTime(quiz.date_of_quiz, quiz.time_duration) }}</td>
+              <td>{{ getTimeRemaining(quiz.date_of_quiz, quiz.time_duration) }}</td>
+              <td>
+                <button class="btn btn-info btn-sm me-2" @click="openQuizModal(quiz)">View</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else class="text-center p-4">No quizzes are currently active.</div>
+    </div>
+    <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
+      <div class="table-responsive" v-if="upcomingQuizzes.length !== 0">
+        <h4 class="text-center text-dark my-4">Upcoming Quizzes</h4>
+        <table class="table table-bordered align-middle text-center">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title - Chapter</th>
+              <th>Starts At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="quiz in upcomingQuizzes" :key="quiz.id">
+              <td>{{ quiz.id }}</td>
+              <td>{{ quiz.title }} - {{ quiz.chapter }}</td>
+              <td>{{ formatDate(quiz.date_of_quiz) }}</td>
+              <td>
+                <span class="badge text-bg-info">upcoming</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
+      <h4 class="text-center text-dark my-4">Past Quizzes</h4>
+      <div class="table-responsive" v-if="pastQuizzes && pastQuizzes.length">
+        <table class="table table-bordered align-middle text-center">
+          <thead>
             <tr>
               <th>ID</th>
               <th>Title - Chapter</th>
@@ -20,19 +72,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="quiz in getQuizzes" :key="quiz.id">
+            <tr v-for="quiz in pastQuizzes" :key="quiz.id">
               <td>{{ quiz.id }}</td>
-              <td>{{ quiz.remarks }} - {{ quiz.chapter }}</td>
+              <td>{{ quiz.title }} - {{ quiz.chapter }}</td>
               <td>{{ formatDate(quiz.date_of_quiz) }}</td>
               <td>{{ formatDuration(quiz.time_duration) }}</td>
               <td>
-                <button class="btn btn-info btn-sm me-2" @click="openQuizModal(quiz)">View</button>
+                <span class="badge text-bg-danger">Time Out</span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div v-else class="text-center">No Quizzes have been scheduled.</div>
     </div>
 
     <!-- Quiz Details Modal -->
@@ -52,10 +103,12 @@
               {{ selectedQuiz.num_questions || (selectedQuiz.questions ? selectedQuiz.questions.length : 'N/A') }}
             </p>
             <!-- Add more quiz details here if available -->
+            <p v-if="!selectedQuiz.is_active" class="fw-bold text-danger text-center fs-5">The quiz has been deactivated</p>
           </div>
-          <div class="modal-footer d-flex justify-content-between align-items-center">
-            <div></div>
-            <button class="btn btn-success" @click="startQuiz(selectedQuiz)">Start</button>
+          <div class="modal-footer d-flex justify-content-around align-items-center">
+
+            <button v-if="selectedQuiz.questions.length !== 0 && selectedQuiz.is_active" class="btn btn-success px-3" @click="startQuiz(selectedQuiz)">Start</button>
+            <button class="btn btn-secondary px-3" @click="closeQuizModal">Close</button>
           </div>
         </div>
       </div>
@@ -77,6 +130,8 @@ export default {
     return {
       isQuizModalVisible: false,
       selectedQuiz: {},
+      currentTime: new Date(),
+      timerId: null,
     };
   },
   computed: {
@@ -84,7 +139,44 @@ export default {
       'getUser',
       'getQuizzes',
       'getQuiz',
-    ])
+    ]),
+    upcomingQuizzes() {
+      if (!this.getQuizzes) return [];
+      return this.getQuizzes.filter(quiz => {
+        const startTime = new Date(quiz.date_of_quiz);
+        if (isNaN(startTime.getTime())) return false;
+        return this.currentTime < startTime;
+      });
+    },
+    activeQuizzes() {
+      if (!this.getQuizzes) return [];
+
+      return this.getQuizzes.filter(quiz => {
+        const startTime = new Date(quiz.date_of_quiz);
+        const durationInMinutes = parseInt(quiz.time_duration, 10);
+
+        if (isNaN(startTime.getTime()) || isNaN(durationInMinutes)) {
+          return false;
+        }
+
+        const endTime = new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
+        return this.currentTime >= startTime && this.currentTime <= endTime;
+      });
+    },
+    pastQuizzes() {
+      if (!this.getQuizzes) return [];
+      return this.getQuizzes.filter(quiz => {
+        const startTime = new Date(quiz.date_of_quiz);
+        const durationInMinutes = parseInt(quiz.time_duration, 10);
+
+        if (isNaN(startTime.getTime()) || isNaN(durationInMinutes)) {
+          return false;
+        }
+
+        const endTime = new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
+        return this.currentTime > endTime;
+      });
+    }
   },
   methods: {
     ...mapActions(['fetchQuizzes']),
@@ -112,6 +204,32 @@ export default {
       const minutes = totalMinutes % 60;
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     },
+    formatEndTime(startTimeStr, duration) {
+      const startTime = new Date(startTimeStr);
+      const durationInMinutes = parseInt(duration, 10);
+      if (isNaN(startTime.getTime()) || isNaN(durationInMinutes)) return 'N/A';
+
+      const endTime = new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
+      return endTime.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
+    getTimeRemaining(startTimeStr, duration) {
+      const startTime = new Date(startTimeStr);
+      const durationInMinutes = parseInt(duration, 10);
+      if (isNaN(startTime.getTime()) || isNaN(durationInMinutes)) return 'N/A';
+
+      const endTime = new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
+      const remainingMs = endTime - this.currentTime;
+
+      if (remainingMs <= 0) return 'Finished';
+
+      const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+      const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} left`;
+    },
     openQuizModal(quiz) {
       this.selectedQuiz = quiz;
       this.isQuizModalVisible = true;
@@ -122,12 +240,21 @@ export default {
     },
     startQuiz(quiz) {
       this.closeQuizModal();
-      this.$refs.toastRef.showToast('Quiz Started', `You have started quiz: ${quiz.remarks}`);
-      // Add your quiz start logic here
+      this.$router.push(`/quiz/${quiz.id}`);
+
     }
   },
   async mounted() {
-    console.log(this.fetchQuizzes());
+    this.fetchQuizzes();
+    // Update the current time every second to keep the list and time remaining reactive
+    this.timerId = setInterval(() => {
+      this.currentTime = new Date();
+    }, 1000);
+  },
+  beforeUnmount() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+    }
   }
 };
 </script>
@@ -156,6 +283,9 @@ footer button {
   user-select: none;
 }
 
+.btn-info:hover {
+    background-color: rgba(23, 162, 184, 1);
+}
 .custom-modal-bg {
   background: rgba(42, 75, 183, 0.501) !important;
   position: fixed;
@@ -174,6 +304,22 @@ footer button {
   width: 90vw;
 }
 
+
+.table {
+  color: white;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: rgba(255, 255, 255, 0.2);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+  --bs-table-hover-color: white;
+}
+
+.table thead {
+  color: #c7d2fe;
+}
+
+.table>thead>tr>th {
+  border-bottom-width: 2px;
+}
 .translucent-card {
   background: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(5px);
