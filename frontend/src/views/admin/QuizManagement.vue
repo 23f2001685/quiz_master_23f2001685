@@ -6,7 +6,7 @@
         <div class="card shadow-sm">
           <div class="card-header bg-primary text-white text-center">
             <i class="bi bi-pencil-fill text-warning fs-4" @click="editQuiz(quiz)"></i>
-            <h3>{{ quiz.remarks }} ({{ quiz.subject }})</h3>
+            <h3>{{ quiz.title }} ({{ quiz.subject }})</h3>
             <i class="bi bi-trash3-fill text-danger fs-4" @click="delQuiz(quiz.id)"></i>
           </div>
           <div class="card-body">
@@ -45,25 +45,29 @@
       @cancel="closeModal">
       <form class="mx-5" @submit.prevent="">
         <div class="mb-3 form-floating">
-          <input type="text" v-model="newQuiz.remarks" name="remarks" id="remarks" class="form-control"
+          <input type="text" v-model="newQuiz.title" name="remarks" id="remarks" class="form-control"
             placeholder="title" required />
           <label for="remarks" class="form-label">Title:</label>
+        </div>
+        <div class="mb-3 form-floating">
+          <textarea rows="10" type="text" v-model="newQuiz.remarks" name="description" id="description"
+            class="form-control" placeholder="description" required />
+          <label for="description" class="form-label">Description:</label>
         </div>
         <div class="mb-3">
           <label for="chapter" class="form-label">Select Chapter:</label>
           <select v-if="getChapters && getChapters.length" id="chapter" v-model="newQuiz.chapter_id" name="chapter"
-            class="form-select" size="5" required>
-            <option value="" disabled selected>Choose here</option>
+            class="form-select" required>
             <option v-for="chapter in getChapters" :key="chapter.id" :value="chapter.id">
               {{ chapter.name }} ({{ chapter.subject.name }})
             </option>
           </select>
-          <div v-else class="text-muted">Loading chapters...</div>
+          <div v-else class="text-muted">No chapters available</div>
         </div>
         <div class="mb-3">
-          <label for="date_of_quiz" class="form-label">Date of Quiz:</label>
-          <input type="date" v-model="newQuiz.date_of_quiz" name="date_of_quiz" id="date_of_quiz" class="form-control"
-            required />
+          <label for="date_of_quiz" class="form-label">Date & Time of Quiz:</label>
+          <input type="datetime-local" v-model="newQuiz.date_of_quiz" name="date_of_quiz" id="date_of_quiz"
+            class="form-control" required />
         </div>
         <div class="mb-3">
           <label for="time_duration" class="form-label">Time duration (in minutes):</label>
@@ -73,8 +77,8 @@
       </form>
     </ModalComponent>
 
-    <ModalComponent v-if="isQuestionModalVisible" :title="questionModalAction" :isVisible="isQuestionModalVisible"
-      @save="saveQuestion" @cancel="closeQuestionModal">
+    <ModalComponent v-if="isQuestionModalVisible" :title="questionModalAction"
+      :isVisible="isQuestionModalVisible" @save="saveQuestion" @cancel="closeQuestionModal">
       <form class="mx-5" @submit.prevent="">
         <div class="mb-3">
           <label for="question_statement" class="form-label">Question Statement:</label>
@@ -165,7 +169,7 @@ export default {
       'deleteQuestion',
     ]),
     editQuiz(quiz) {
-      this.updateQuiz({ quiz: quiz})
+      this.updateQuiz({ quiz: quiz })
     },
     async delQuiz(quizID) {
       if (confirm(`Are you sure you want to delete quiz?`)) {

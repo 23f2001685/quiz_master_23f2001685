@@ -70,8 +70,10 @@ export default {
         this.$store.dispatch('fetchUser')
         this.isActive = false
         if (this.role == 'admin') {
+          localStorage.setItem('role', 'admin')
           this.$router.push('/admin')
         } else {
+          localStorage.setItem('role', 'user')
           this.$router.push('/user')
         }
       } catch (error) {
