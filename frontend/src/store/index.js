@@ -191,6 +191,15 @@ const store = createStore({
         commit('SET_LOADING', false);
       }
     },
+    async register(userData) {
+      try {
+        const response = await axios.post('http://localhost:5000/api/register', userData);
+        return response.data;
+      } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+      }
+    },
 
     // Quiz + Subjects
     async fetchSubjects({ commit }) {

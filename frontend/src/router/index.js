@@ -8,6 +8,7 @@ import UserManagement from '../views/admin/UserManagement.vue';
 import Quiz from '../views/user/Quiz.vue';
 import Scores from '../views/user/Scores.vue';
 import UserSummary from '../views/user/UserSummary.vue';
+import AdminSummary from '../views/admin/AdminSummary.vue';
 
 const routes = [
     {
@@ -67,6 +68,13 @@ const routes = [
         component: UserSummary,
         props: true,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/admin-summary',
+        name: 'AdminSummary',
+        component: AdminSummary,
+        props: true,
+        meta: { requiresAdmin: true }
     }
 ];
 
@@ -79,7 +87,10 @@ router.beforeEach((to, from, next) => {
     // Replace these with your actual authentication logic
     const isAuthenticated = !!localStorage.getItem('auth_token'); // Example: check if user is logged in
     const isAdmin = localStorage.getItem('role') === 'admin'; // Example: check if user is admin
-
+    if (isAdmin && to.path === '/summary') {
+        next({ path: '/admin-summary' }); // Redirect admin to AdminSummary if they try to access UserSummary
+        return;
+    }
     if (to.matched.some(record => record.meta.requiresAuth)) {
         if (!isAuthenticated) {
             next({ path: '/login' });

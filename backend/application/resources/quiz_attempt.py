@@ -5,7 +5,7 @@ from flask_security import auth_required, roles_accepted
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
-from application.models import QuizAttempt, User, Quiz, db
+from application.models import Chapter, QuizAttempt, Subject, User, Quiz, db
 
 class QuizAttemptResource(Resource):
     # Individual quiz attempt
@@ -246,50 +246,38 @@ class UserQuizAttemptsResource(Resource):
 class QuizAttemptsStatsResource(Resource):
     # Stats
 
+    @auth_required()
     @roles_accepted('admin')
     def get(self):
         try:
-            # Total attempts
-            total_attempts = QuizAttempt.query.count()
-            # Average score
-            avg_score = db.session.query(db.func.avg(QuizAttempt.percentage)).scalar() or 0
-            # Best performance
-            best_attempt = QuizAttempt.query.order_by(QuizAttempt.percentage.desc()).first()
-            # Recent attempts (last 10)
-            recent_attempts = QuizAttempt.query.order_by(
-                QuizAttempt.timestamp.desc()
-            ).limit(10).all()
-            # Quiz-wise statistics
-            quiz_stats = db.session.query(
-                QuizAttempt.quiz_id,
-                Quiz.title,
-                db.func.count(QuizAttempt.id).label('attempt_count'),
-                db.func.avg(QuizAttempt.percentage).label('avg_percentage')
-            ).join(Quiz).group_by(QuizAttempt.quiz_id, Quiz.title).all()
+            # Get all quiz attempts with quiz and subject information
+            attempts = db.session.query(QuizAttempt).join(Quiz).join(Chapter).join(Subject).all()
+
+            # Calculate subject-wise top scores
+            subject_top_scores = {}
+            subject_attempts = {}
+
+            for attempt in attempts:
+                subject_name = attempt.quiz.chapter.subject.name
+
+                # Track top scores per subject
+                if subject_name not in subject_top_scores:
+                    subject_top_scores[subject_name] = attempt.percentage
+                else:
+                    if attempt.percentage > subject_top_scores[subject_name]:
+                        subject_top_scores[subject_name] = attempt.percentage
+
+                # Count attempts per subject
+                if subject_name not in subject_attempts:
+                    subject_attempts[subject_name] = 1
+                else:
+                    subject_attempts[subject_name] += 1
+
             return {
-                'total_attempts': total_attempts,
-                'average_score': round(avg_score, 2),
-                'best_attempt': {
-                    'id': best_attempt.id,
-                    'user_name': best_attempt.user.email,
-                    'quiz_title': best_attempt.quiz.title,
-                    'percentage': best_attempt.percentage,
-                    'timestamp': best_attempt.timestamp.isoformat()
-                } if best_attempt else None,
-                'recent_attempts': [{
-                    'id': attempt.id,
-                    'user_name': attempt.user.email,
-                    'quiz_title': attempt.quiz.title,
-                    'percentage': attempt.percentage,
-                    'timestamp': attempt.timestamp.isoformat()
-                } for attempt in recent_attempts],
-                'quiz_statistics': [{
-                    'quiz_id': stat.quiz_id,
-                    'quiz_title': stat.title,
-                    'attempt_count': stat.attempt_count,
-                    'average_percentage': round(stat.avg_percentage, 2)
-                } for stat in quiz_stats]
-            }, 200
+                'subject_top_scores': subject_top_scores,
+                'subject_attempts': subject_attempts,
+                'total_attempts': len(attempts)
+            }
 
         except Exception as e:
-            return {'message': f'Error retrieving quiz attempt statistics: {str(e)}'}, 500
+            return {'message': 'Failed to fetch stats', 'error': str(e)}, 500

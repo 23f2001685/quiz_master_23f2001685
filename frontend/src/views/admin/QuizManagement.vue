@@ -3,13 +3,13 @@
 
     <div class="row mt-4">
       <div class="col-md-6 mb-4" v-for="quiz in quizzes" :key="quiz.id">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white text-center">
+        <div class="card-themed shadow-sm p-1">
+          <div class="card-header p-1">
             <i class="bi bi-pencil-fill text-warning fs-4" @click="editQuiz(quiz)"></i>
             <h3>{{ quiz.title }} ({{ quiz.subject }})</h3>
             <i class="bi bi-trash3-fill text-danger fs-4" @click="delQuiz(quiz.id)"></i>
           </div>
-          <div class="card-body">
+          <div class="">
             <table class="table table-bordered">
               <thead>
                 <tr>
@@ -228,10 +228,42 @@ export default {
 
 <style scoped>
 .card-header {
+  border-radius: 0.375rem;
   display: flex;
   justify-content: space-between;
   font-weight: bold;
 }
+
+.table {
+  color: white;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: rgba(255, 255, 255, 0.2);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+  --bs-table-hover-color: white;
+}
+
+.table thead {
+  color: #c7d2fe;
+}
+
+.table>thead>tr>th {
+  border-bottom-width: 2px;
+}
+
+.table-row-item:hover {
+  background-color: rgba(84, 84, 84, 0.093);
+}
+
+
+.card-themed {
+  background: rgba(181, 177, 177, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(18, 19, 32, 0.557);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.509);
+}
+
 
 .btn-pink {
   background-color: #ff99cc;
@@ -244,11 +276,11 @@ export default {
   border-color: #ff80bf;
 }
 
-.table th,
+/* .table th,
 .table td {
   text-align: center;
   vertical-align: middle;
-}
+} */
 
 .card-body {
   padding: 1.5rem;

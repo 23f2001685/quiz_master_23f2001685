@@ -1,9 +1,9 @@
 <template>
-  <div class="card shadow-lg mb-4">
-    <div class="card-header text-center bg-secondary text-white">
-      <i class="bi bi-pencil-fill text-warning fs-4" @click="editSubject"></i>
-      <h5 class="mb-0">{{ subject.name }} - {{ subject.description }}</h5>
-      <i class="bi bi-trash3-fill text-danger fs-4" @click="deleteSubject"></i>
+  <div class="card-themed shadow-lg mb-4 p-1">
+    <div class="card-header text-center">
+      <i class="bi bi-pencil-fill text-warning fs-4 ms-2" @click="editSubject"></i>
+      <h5 class="mb-0 mt-1">{{ subject.name }} - {{ subject.description }}</h5>
+      <i class="bi bi-trash3-fill text-danger fs-4 me-2" @click="deleteSubject"></i>
     </div>
     <div class="card-body">
       <Spinner :active="isLoading" />
@@ -166,6 +166,36 @@ export default {
   border-radius: 0.375rem;
   display: flex;
   justify-content: space-between;
+}
+
+.table {
+  color: white;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: rgba(255, 255, 255, 0.2);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+  --bs-table-hover-color: white;
+}
+
+.table thead {
+  color: #c7d2fe;
+}
+
+.table>thead>tr>th {
+  border-bottom-width: 2px;
+}
+
+.table-row-item:hover {
+  background-color: rgba(84, 84, 84, 0.093);
+}
+
+
+.card-themed {
+  background: rgba(181, 177, 177, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(18, 19, 32, 0.557);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.509);
 }
 
 .modal {

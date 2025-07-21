@@ -2,7 +2,9 @@
   <div v-if="isVisible" class="modal-overlay">
     <div class="modal-container">
       <h3 class="modal-title">{{ title }}</h3>
-      <slot></slot>
+      <slot>
+
+      </slot>
       <div class="modal-actions">
         <button class="btn btn-primary" @click="handleSave">Save</button>
         <button class="btn btn-secondary" @click="handleCancel">Cancel</button>
@@ -43,6 +45,9 @@ export default {
   background: white;
   padding: 20px;
   border-radius: 8px;
+  width: 80vw;
+  max-width: 900px;
+  height: auto;
 }
 
 .modal-title {
@@ -52,6 +57,14 @@ export default {
 
 .modal-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2em;
+}
+
+button {
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 10vw;
 }
 </style>
