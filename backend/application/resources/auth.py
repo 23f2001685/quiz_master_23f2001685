@@ -95,4 +95,3 @@ class UserProfileResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {'message': f'Error updating profile: {str(e)}'}, 500
-

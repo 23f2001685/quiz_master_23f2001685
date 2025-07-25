@@ -242,6 +242,38 @@ class UserQuizAttemptsResource(Resource):
         except Exception as e:
             return {'message': f'Error retrieving user quiz attempts: {str(e)}'}, 500
 
+class UserStatsResource(Resource):
+    # getting quiz attempts by user
+
+    @auth_required()
+    def get(self, user_id):
+        # Get all quiz attempts for a user
+        try:
+
+            if current_user.has_role('admin') and current_user.id != user_id:
+                return {'message': 'Access denied'}, 403
+
+            user = User.query.get_or_404(user_id)
+
+            query = QuizAttempt.query.filter_by(user_id=user_id)
+
+            query = query.order_by(QuizAttempt.timestamp.desc())
+
+            attempts = [{
+                'id': attempt.id,
+                'timestamp': attempt.timestamp.isoformat(),
+                'subject_name': attempt.quiz.chapter.subject.name if attempt.quiz and attempt.quiz.chapter else None
+            } for attempt in query.all()]
+
+            return {
+                'user_id': user_id,
+                'user_name': user.email,
+                'attempts': attempts,
+            }, 200
+
+        except Exception as e:
+            return {'message': f'Error retrieving user quiz attempts: {str(e)}'}, 500
+
 
 class QuizAttemptsStatsResource(Resource):
     # Stats

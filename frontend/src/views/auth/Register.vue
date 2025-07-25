@@ -5,23 +5,23 @@
             <form @submit.prevent="register" class="mx-auto" style="max-width: 500px;">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email:</label>
-                    <input type="email" v-model="form.email" id="email" class="form-control" required />
+                    <input type="email" v-model="getNewUser.email" id="email" class="form-control" required />
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password:</label>
-                    <input type="password" v-model="form.password" id="password" class="form-control" required />
+                    <input type="password" v-model="getNewUser.password" id="password" class="form-control" required />
                 </div>
                 <div class="mb-3">
                     <label for="full_name" class="form-label">Full Name:</label>
-                    <input type="text" v-model="form.full_name" id="full_name" class="form-control" required />
+                    <input type="text" v-model="getNewUser.full_name" id="full_name" class="form-control" required />
                 </div>
                 <div class="mb-3">
                     <label for="qualification" class="form-label">Qualification:</label>
-                    <input type="text" v-model="form.qualification" id="qualification" class="form-control" />
+                    <input type="text" v-model="getNewUser.qualification" id="qualification" class="form-control" />
                 </div>
                 <div class="mb-3">
                     <label for="dob" class="form-label">Date of Birth:</label>
-                    <input type="date" v-model="form.dob" id="dob" class="form-control" />
+                    <input type="date" v-model="getNewUser.dob" id="dob" class="form-control" />
                 </div>
                 <button type="submit" class="btn btn-primary">Register</button>
             </form>
@@ -33,34 +33,16 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex';
+
 export default {
     name: 'Register',
-    data() {
-        return {
-            form: {
-                email: '',
-                password: '',
-                full_name: '',
-                qualification: '',
-                dob: '',
-            },
-        };
+    computed: {
+        ...mapGetters(['getError', 'getNewUser']),
     },
     methods: {
-        async register() {
-            try {
-                await this.$store.dispatch('register', this.form);
-                alert('Registration successful! Please login.');
-                this.$router.push('/');
-            } catch (error) {
-                alert('Failed to register: ' + (error.response?.data?.message || error.message));
-            }
-        },
+        ...mapActions(['register']),
     },
-    mounted() {
-        console.log();
-
-    }
 };
 </script>
 

@@ -7,17 +7,21 @@
       </div>
     </div>
     <div v-if="!loading && error" class="alert alert-danger">{{ error }}</div>
-    <div v-if="!loading && !error && userAttempts.length > 0" class="row">
+        <div v-if="!loading && !error && userAttempts.length > 0" class="row">
       <div class="col-md-6 mb-4">
         <div class="card-themed shadow-sm p-3">
           <h4 class="text-center text-dark my-2">Subject-wise Quizzes Attempted</h4>
-          <Bar :data="subjectChartData" :options="chartOptions" />
+          <div class="chart-container">
+            <Bar :data="subjectChartData" :options="barChartOptions" />
+          </div>
         </div>
       </div>
       <div class="col-md-6 mb-4">
         <div class="card-themed shadow-sm p-3">
           <h4 class="text-center text-dark my-2">Month-wise Quizzes Attempted</h4>
-          <Pie :data="monthChartData" :options="chartOptions" />
+          <div class="chart-container">
+            <Pie :data="monthChartData" :options="doughnutChartOptions" />
+          </div>
         </div>
       </div>
     </div>
@@ -44,12 +48,32 @@ export default {
     return {
       loading: true,
       error: null,
-      chartOptions: {
+      barChartOptions: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'top',
+              display: false,
+          },
+          title: {
+            display: false,
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      },
+      doughnutChartOptions: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
           },
           title: {
             display: false,
@@ -64,14 +88,18 @@ export default {
       return this.getUserAttempts || [];
     },
     subjectChartData() {
+      console.log(`User attempts data: ${JSON.stringify(this.userAttempts)}`);
+
       const subjectCounts = this.userAttempts.reduce((acc, attempt) => {
-        const subject = attempt.quiz_subject || 'Uncategorized';
+        const subject = attempt.subject_name || 'Uncategorized';
         acc[subject] = (acc[subject] || 0) + 1;
         return acc;
       }, {});
 
       const labels = Object.keys(subjectCounts);
       const data = Object.values(subjectCounts);
+
+      console.log(`Subject counts: ${JSON.stringify(subjectCounts)}`);
 
       return {
         labels,
@@ -112,7 +140,9 @@ export default {
       this.error = null;
       try {
         if (this.getUser && this.getUser.id) {
+          console.log(`Fetching attempts for user ID: ${this.getUser.id}`);
           await this.fetchUserAttempts(this.getUser.id);
+          console.log(`User attempts loaded: ${JSON.stringify(this.userAttempts)}`);
         } else {
           this.error = "Could not identify user. Please log in again.";
         }
@@ -124,7 +154,13 @@ export default {
       }
     },
   },
-  mounted() {
+  async mounted() {
+    // Ensure user data is loaded before fetching attempts
+    if (!this.getUser || !this.getUser.id) {
+      if (this.$store.dispatch && this.$store.dispatch('fetchUser')) {
+        await this.$store.dispatch('fetchUser');
+      }
+    }
     this.loadSummaryData();
   },
 };
@@ -136,5 +172,11 @@ export default {
   backdrop-filter: blur(5px);
   border-radius: 1rem;
   color: #333;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
 }
 </style>

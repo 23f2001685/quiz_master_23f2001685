@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_restful import Api
 from flask_security import Security, SQLAlchemyUserDatastore
@@ -12,11 +13,13 @@ from application.resources.quiz_attempt import (
     QuizAttemptResource,
     QuizAttemptsResource,
     QuizAttemptsStatsResource,
-    UserQuizAttemptsResource
+    UserQuizAttemptsResource,
+    UserStatsResource
 )
 
 migrate = Migrate()
 cors = CORS()
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
@@ -24,6 +27,7 @@ def create_app():
     db.init_app(app)
     cors.init_app(app, origins=["*"], supports_credentials=True)
     migrate.init_app(app, db)
+    mail.init_app(app)
     api = Api(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
@@ -51,6 +55,7 @@ api.add_resource(QuestionResource, '/api/quizzes/<int:quiz_id>/questions', '/api
 api.add_resource(QuizAttemptsResource, '/api/quiz-attempts')
 api.add_resource(QuizAttemptResource, '/api/quiz-attempts/<int:attempt_id>')
 api.add_resource(UserQuizAttemptsResource, '/api/users/<int:user_id>/quiz-attempts')
+api.add_resource(UserStatsResource, '/api/users/<int:user_id>/stats')
 api.add_resource(QuizAttemptsStatsResource, '/api/quiz-attempts/stats')
 
 app.app_context().push()

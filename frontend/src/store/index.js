@@ -4,10 +4,18 @@ import axios from 'axios'
 const store = createStore({
   state: {
     user: null,
+    newUser: {
+      email: '',
+      password: '',
+      full_name: '',
+      qualification: '',
+      dob: '',
+    },
     subjects: [],
     chapters: [],
     quizzes: [],
     users: [],
+    userAttempts: [],
     isModalVisible: false,
     newSubject: { name: '', description: '' },
     newQuiz: {
@@ -40,8 +48,14 @@ const store = createStore({
     SET_USER(state, user) {
       state.user = user
     },
+    SET_NEW_USER(state, newUser) {
+      state.newUser = newUser
+    },
     SET_USERS(state, users) {
       state.users = users;
+    },
+    SET_USER_ATTEMPTS(state, attempts) {
+      state.userAttempts = attempts;
     },
     SET_SUBJECTS(state, subjects) {
       state.subjects = subjects
@@ -115,6 +129,23 @@ const store = createStore({
         commit('SET_USER', response.data);
       } catch (error) {
         console.error('Please login to proceed');
+      }
+    },
+    async fetchUserAttempts({ commit }, userId) {
+      try {
+        commit('SET_LOADING', true);
+        const response = await axios.get(`http://localhost:5000/api/users/${userId}/stats`, {
+          headers: {
+            'Authentication-Token': localStorage.getItem('auth_token'),
+          },
+        });
+        commit('SET_USER_ATTEMPTS', response.data.attempts || []);
+      } catch (error) {
+        console.error('Error fetching user attempts:', error.response?.data?.message || error.message);
+        commit('SET_USER_ATTEMPTS', []);
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
     logOut({ commit }) {
@@ -191,13 +222,30 @@ const store = createStore({
         commit('SET_LOADING', false);
       }
     },
-    async register(userData) {
+    async register({ commit, state, dispatch }) {
+      commit('SET_LOADING', true);
+      if (!state.newUser.email || !state.newUser.password || !state.newUser.full_name) {
+        commit('SET_ERROR', 'Please fill in all required fields.');
+      }
       try {
-        const response = await axios.post('http://localhost:5000/api/register', userData);
+        const response = await axios.post('http://localhost:5000/api/register', state.newUser);
         return response.data;
       } catch (error) {
+        alert('Registration failed. Please try again.');
+        commit('SET_ERROR', error.response?.data?.message || 'Registration failed');
         console.error('Registration error:', error);
         throw error;
+      } finally {
+        commit('SET_NEW_USER', {
+          email: '',
+          password: '',
+          full_name: '',
+          qualification: '',
+          dob: '',
+        });
+        commit('SET_LOADING', false);
+        alert('Registration successful! Please log in.');
+        this.$router.push('/login');
       }
     },
 
@@ -521,6 +569,9 @@ const store = createStore({
     getUser(state) {
       return state.user;
     },
+    getNewUser(state) {
+      return state.newUser;
+    },
     users(state) {
       return state.users;
     },
@@ -569,6 +620,9 @@ const store = createStore({
     newQuestion(state) {
       return state.newQuestion;
     },
+    getUserAttempts(state) {
+      return state.userAttempts;
+    }
   },
 });
 
