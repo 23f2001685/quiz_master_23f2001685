@@ -10,6 +10,7 @@ from application.config import LocalDevConfig
 from application.database import db
 from application.models import User, Role
 from application.resources.quiz_attempt import (
+    ExportUserAttemptsResource,
     QuizAttemptResource,
     QuizAttemptsResource,
     QuizAttemptsStatsResource,
@@ -57,6 +58,7 @@ api.add_resource(QuizAttemptResource, '/api/quiz-attempts/<int:attempt_id>')
 api.add_resource(UserQuizAttemptsResource, '/api/users/<int:user_id>/quiz-attempts')
 api.add_resource(UserStatsResource, '/api/users/<int:user_id>/stats')
 api.add_resource(QuizAttemptsStatsResource, '/api/quiz-attempts/stats')
+api.add_resource(ExportUserAttemptsResource, '/api/quiz-attempts/export')
 
 app.app_context().push()
 

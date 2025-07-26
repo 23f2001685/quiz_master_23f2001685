@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
 from application.models import Chapter, QuizAttempt, Subject, User, Quiz, db
+from application.tasks import export_user_attempts_csv
 
 class QuizAttemptResource(Resource):
     # Individual quiz attempt
@@ -313,3 +314,14 @@ class QuizAttemptsStatsResource(Resource):
 
         except Exception as e:
             return {'message': 'Failed to fetch stats', 'error': str(e)}, 500
+
+class ExportUserAttemptsResource(Resource):
+    @auth_required()
+    def post(self):
+        """Triggers a background job to export user's quiz attempts as a CSV."""
+        try:
+            user = current_user
+            export_user_attempts_csv.delay(user.id)
+            return {'message': 'Your quiz history is being exported. You will receive an email with the CSV file shortly.'}, 202
+        except Exception as e:
+            return {'message': f'An unexpected error occurred: {str(e)}'}, 500

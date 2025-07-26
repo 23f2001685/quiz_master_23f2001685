@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 from sqlalchemy import func
+import io
+import csv
 
 from application.models import User, Quiz, QuizAttempt, Subject, Chapter
 from application.database import db
@@ -233,3 +235,71 @@ def send_performance_report_email(user_id):
     except Exception as e:
         print(f"[ERROR] Error sending performance report: {str(e)}")
         return f"Error: {str(e)}"
+
+@celery_app.task
+def export_user_attempts_csv(user_id):
+    """
+    Fetches all quiz attempts for a user, generates a CSV,
+    and emails it to them.
+    """
+    with flask_app.app_context():
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                print(f"[ERROR] User with ID {user_id} not found for CSV export.")
+                return
+
+            attempts = db.session.query(QuizAttempt).filter_by(user_id=user_id).join(Quiz).order_by(QuizAttempt.timestamp.desc()).all()
+
+            if not attempts:
+                # Optionally, send an email notifying the user they have no attempts.
+                print(f"[INFO] No quiz attempts found for user {user.email} to export.")
+                return
+
+            # Create CSV in-memory
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Write header
+            header = [
+                'Quiz Title', 'Subject', 'Chapter', 'Date Attempted',
+                'Score', 'Max Score', 'Percentage', 'Quiz Remarks'
+            ]
+            writer.writerow(header)
+
+            # Write data rows
+            for attempt in attempts:
+                row = [
+                    attempt.quiz.title,
+                    attempt.quiz.chapter.subject.name,
+                    attempt.quiz.chapter.name,
+                    attempt.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                    attempt.total_score,
+                    attempt.max_score,
+                    f"{attempt.percentage:.2f}%",
+                    attempt.quiz.remarks
+                ]
+                writer.writerow(row)
+
+            csv_data = output.getvalue()
+            output.close()
+
+            # Send email with CSV attachment
+            mail = Mail(flask_app)
+            msg = Message(
+                subject="Your Quiz Attempts Export",
+                recipients=[user.email],
+                body="Please find your quiz attempts history attached.",
+                html="<p>Hello,</p><p>Please find your quiz attempts history attached in the CSV file.</p>"
+            )
+            msg.attach(
+                "quiz_attempts.csv",
+                "text/csv",
+                csv_data
+            )
+            mail.send(msg)
+            print(f"[INFO] Successfully sent quiz attempts CSV to {user.email}")
+
+        except Exception as e:
+            print(f"[ERROR] Failed to export CSV for user {user_id}: {str(e)}")
+        return f"Exported quiz attempts for user {user.email} to CSV"
