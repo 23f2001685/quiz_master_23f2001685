@@ -43,8 +43,18 @@ const store = createStore({
       option4: '',
       correct_option: 1,
     },
+    searchQuery: '',
+    searchResults: [],
   },
   mutations: {
+    SET_SEARCH_QUERY(state, query) {
+      state.searchQuery = query;
+      state.searchResults = state.quizzes.filter(quiz =>
+        quiz.title.toLowerCase().includes(query.toLowerCase()) ||
+        quiz.chapter.toLowerCase().includes(query.toLowerCase()) ||
+        quiz.remarks.toLowerCase().includes(query.toLowerCase())
+      );
+    },
     SET_USER(state, user) {
       state.user = user
     },
@@ -116,6 +126,10 @@ const store = createStore({
   },
   actions: {
 
+    // Search
+    async performSearch({ commit }, query) {
+      commit('SET_SEARCH_QUERY', query);
+    },
     // Users
     async fetchUser({ commit }) {
       const auth_token = localStorage.getItem('auth_token')
@@ -566,6 +580,9 @@ const store = createStore({
     },
   },
   getters: {
+    getSearchQuery(state) {
+      return state.searchQuery;
+    },
     getUser(state) {
       return state.user;
     },

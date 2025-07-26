@@ -4,12 +4,15 @@
       {{ getError }}
     </div>
     <main class="row">
-      <div class="col-md-6" v-for="subject in getSubjects" :key="subject.id">
+      <div class="col-md-6" v-for="subject in filteredSubjects" :key="subject.id">
         <SubjectCard
           :subject="subject"
           @edit-subject="editSubject(subject)"
           @delete-subject="delSubject(subject.id)"
         />
+      </div>
+      <div v-if="isSearching && !filteredSubjects.length" class="text-center p-5">
+        <h4 class="text-muted">No subjects found for "{{ getSearchQuery }}"</h4>
       </div>
     </main>
     <ModalComponent
@@ -63,7 +66,22 @@ export default {
       'isModalVisible',
       'modalAction',
       'newSubject',
+      'getSearchQuery',
     ]),
+    isSearching() {
+      return this.getSearchQuery && this.getSearchQuery.trim() !== '';
+    },
+    filteredSubjects() {
+      if (!this.isSearching) {
+        return this.getSubjects;
+      }
+      const query = this.getSearchQuery.toLowerCase().trim();
+      return this.getSubjects.filter(subject => {
+        const nameMatch = subject.name.toLowerCase().includes(query);
+        const descriptionMatch = subject.description.toLowerCase().includes(query);
+        return nameMatch || descriptionMatch;
+      });
+    },
   },
   methods: {
     ...mapActions([
@@ -73,6 +91,7 @@ export default {
       'saveSubject',
       'editSubject',
       'deleteSubject',
+      'performSearch'
     ]),
     logOut() {
       localStorage.clear();
@@ -95,6 +114,9 @@ export default {
     this.fetchSubjects();
     this.$store.dispatch('fetchUser');
   },
+  beforeUnmount() {
+    this.performSearch(''); // Clear search query on unmount
+  }
 };
 </script>
 

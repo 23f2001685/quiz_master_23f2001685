@@ -14,14 +14,21 @@
       <span class="fs-3"><span class="fw-bold">Welcome, </span>{{ username }}</span>
       <router-link v-if="$route.name !== 'UserManagement' && isAdmin" class="routerLink btn btn-outline-primary"
         to="/users"><i class="bi bi-person-fill-gear pe-2"></i>User Management</router-link>
-        <input type="text" class="grow-search form-control" placeholder="Search" style="width: 200px;" />
-        <button class="btn btn-outline-danger d-flex align-items-center gap-2" @click="logOut">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-7A1.5 1.5 0 0 0 1 3.5v9A1.5 1.5 0 0 0 2.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-            <path fill-rule="evenodd" d="M15.354 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L13.293 7.5H5.5a.5.5 0 0 0 0 1h7.793l-1.647 1.646a.5.5 0 0 0 .708.708l3-3z"/>
-          </svg>
-          Log Out
-        </button>
+      <input
+        v-if="isSearchVisible"
+        type="text"
+        class="grow-search form-control"
+        placeholder="Search..."
+        style="width: 250px;"
+        v-model="searchQuery"
+      />
+      <button class="btn btn-outline-danger d-flex align-items-center gap-2" @click="logOut">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-7A1.5 1.5 0 0 0 1 3.5v9A1.5 1.5 0 0 0 2.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+          <path fill-rule="evenodd" d="M15.354 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L13.293 7.5H5.5a.5.5 0 0 0 0 1h7.793l-1.647 1.646a.5.5 0 0 0 .708.708l3-3z"/>
+        </svg>
+        Log Out
+      </button>
     </header>
   </div>
 </template>
@@ -36,10 +43,22 @@ export default {
   props: ['username'],
   components: { RouterLink },
   computed: {
-    ...mapGetters(['getUser']),
+    ...mapGetters(['getUser', 'getSearchQuery']),
     isAdmin() {
       return this.getUser && this.getUser.roles && this.getUser.roles.includes('admin');
     },
+    isSearchVisible() {
+      const visibleRoutes = ['UserDashboard', 'AdminDashboard', 'QuizManagement', 'UserManagement'];
+      return visibleRoutes.includes(this.$route.name);
+    },
+    searchQuery: {
+      get() {
+        return this.getSearchQuery;
+      },
+      set(value) {
+        this.$store.dispatch('performSearch', value);
+      }
+    }
   },
   methods: {
     ...mapActions(['logOut']),

@@ -5,6 +5,7 @@
       <h2 class="mb-4">User Dashboard</h2>
     </div>
     <Toast ref="toastRef" />
+    <strong v-if="isSearching" class="text-center text-muted">Searching...</strong>
     <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
       <div class="table-responsive" v-if="activeQuizzes.length !== 0">
         <h4 class="text-center text-dark my-4">Active Quizzes</h4>
@@ -31,7 +32,7 @@
           </tbody>
         </table>
       </div>
-      <div v-else class="text-center p-4">No quizzes are currently active.</div>
+      <div v-else-if="!isSearching" class="text-center p-4">No quizzes are currently active.</div>
     </div>
     <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
       <div class="table-responsive" v-if="upcomingQuizzes.length !== 0">
@@ -58,9 +59,9 @@
         </table>
       </div>
     </div>
-    <div :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
+    <div v-if="pastQuizzes && pastQuizzes.length" :class="['card-themed', 'mx-auto', 'shadow-sm', { 'blurred': isQuizModalVisible }]">
       <h4 class="text-center text-dark my-4">Past Quizzes</h4>
-      <div class="table-responsive" v-if="pastQuizzes && pastQuizzes.length">
+      <div class="table-responsive">
         <table class="table table-bordered align-middle text-center">
           <thead>
             <tr>
@@ -84,6 +85,12 @@
           </tbody>
         </table>
       </div>
+    </div>
+    <!-- No Results Message -->
+    <div v-if="isSearching && noResults" class="card-themed text-center p-5 mt-4">
+      <h4 class="text-dark">No Quizzes Found</h4>
+      <p class="text-dark-50">No quizzes match your search for "{{ getSearchQuery }}".</p>
+      <button class="btn btn-primary mt-3" @click="clearSearch">Clear Search</button>
     </div>
 
     <!-- Quiz Details Modal -->
@@ -139,19 +146,35 @@ export default {
       'getUser',
       'getQuizzes',
       'getQuiz',
+      'getSearchQuery',
     ]),
+    isSearching() {
+      return this.getSearchQuery && this.getSearchQuery.trim() !== '';
+    },
+    noResults() {
+      return this.activeQuizzes.length === 0 && this.upcomingQuizzes.length === 0 && this.pastQuizzes.length === 0;
+    },
+    filteredQuizzes() {
+      if (!this.isSearching) {
+        return this.getQuizzes || [];
+      }
+      const query = this.getSearchQuery.toLowerCase().trim();
+      return (this.getQuizzes || []).filter(quiz => {
+        const titleMatch = quiz.title && quiz.title.toLowerCase().includes(query);
+        const subjectMatch = quiz.subject && quiz.subject.toLowerCase().includes(query);
+        const chapterMatch = quiz.chapter && quiz.chapter.toLowerCase().includes(query);
+        return titleMatch || subjectMatch || chapterMatch;
+      });
+    },
     upcomingQuizzes() {
-      if (!this.getQuizzes) return [];
-      return this.getQuizzes.filter(quiz => {
+      return this.filteredQuizzes.filter(quiz => {
         const startTime = new Date(quiz.date_of_quiz);
         if (isNaN(startTime.getTime())) return false;
         return this.currentTime < startTime;
       });
     },
     activeQuizzes() {
-      if (!this.getQuizzes) return [];
-
-      return this.getQuizzes.filter(quiz => {
+      return this.filteredQuizzes.filter(quiz => {
         const startTime = new Date(quiz.date_of_quiz);
         const durationInMinutes = parseInt(quiz.time_duration, 10);
 
@@ -164,8 +187,7 @@ export default {
       });
     },
     pastQuizzes() {
-      if (!this.getQuizzes) return [];
-      return this.getQuizzes.filter(quiz => {
+      return this.filteredQuizzes.filter(quiz => {
         const startTime = new Date(quiz.date_of_quiz);
         const durationInMinutes = parseInt(quiz.time_duration, 10);
 
@@ -176,12 +198,15 @@ export default {
         const endTime = new Date(startTime.getTime() + durationInMinutes * 60 * 1000);
         return this.currentTime > endTime;
       });
-    }
+    },
   },
   methods: {
-    ...mapActions(['fetchQuizzes']),
+    ...mapActions(['fetchQuizzes', 'performSearch']),
     showToast() {
       this.$refs.toastRef.showToast('Hello', 'This is a toast message from User Dashboard!');
+    },
+    clearSearch() {
+      this.performSearch('');
     },
     formatDate(dateStr) {
       if (!dateStr) return '';
@@ -255,6 +280,7 @@ export default {
     if (this.timerId) {
       clearInterval(this.timerId);
     }
+    this.clearSearch();
   }
 };
 </script>

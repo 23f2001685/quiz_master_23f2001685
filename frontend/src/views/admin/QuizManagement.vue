@@ -2,7 +2,7 @@
   <div class="container mt-4">
 
     <div class="row mt-4">
-      <div class="col-md-6 mb-4" v-for="quiz in quizzes" :key="quiz.id">
+      <div class="col-md-6 mb-4" v-for="quiz in filteredQuizzes" :key="quiz.id">
         <div class="card-themed shadow-sm p-1">
           <div class="card-header p-1">
             <i class="bi bi-pencil-fill text-warning fs-4" @click="editQuiz(quiz)"></i>
@@ -39,6 +39,10 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-if="isSearching && !filteredQuizzes.length" class="text-center p-5">
+      <h4 class="text-muted">No quizzes or questions found for "{{ getSearchQuery }}"</h4>
     </div>
 
     <ModalComponent v-if="isModalVisible" :title="quizModalAction" :isVisible="isModalVisible" @save="saveQuiz"
@@ -147,9 +151,27 @@ export default {
       'isQuestionModalVisible',
       'questionModalAction',
       'newQuestion',
+      'getSearchQuery',
     ]),
     quizzes() {
       return this.getQuizzes;
+    },
+    isSearching() {
+      return this.getSearchQuery && this.getSearchQuery.trim() !== '';
+    },
+    filteredQuizzes() {
+      if (!this.isSearching) {
+        return this.quizzes;
+      }
+      const query = this.getSearchQuery.toLowerCase().trim();
+      return this.quizzes.filter(quiz => {
+        const titleMatch = quiz.title.toLowerCase().includes(query);
+        const subjectMatch = quiz.subject.toLowerCase().includes(query);
+        const questionMatch = quiz.questions.some(question =>
+          question.question_statement.toLowerCase().includes(query)
+        );
+        return titleMatch || subjectMatch || questionMatch;
+      });
     },
   },
   methods: {
@@ -167,6 +189,7 @@ export default {
       'addQuestion',
       'updateQuestion',
       'deleteQuestion',
+      'performSearch'
     ]),
     editQuiz(quiz) {
       this.updateQuiz({ quiz: quiz })
@@ -223,6 +246,9 @@ export default {
     this.fetchSubjects();
     this.fetchQuizzes();
   },
+  beforeUnmount() {
+    this.performSearch(''); // Clear search query on unmount
+  }
 };
 </script>
 
