@@ -1,7 +1,7 @@
 from flask_restful import Resource, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required
-from ...models import Question, Quiz
-from ...database import db
+from ...data.models import Question, Quiz
+from ...data.database import db
 
 question_fields = {
     "id": fields.Integer,

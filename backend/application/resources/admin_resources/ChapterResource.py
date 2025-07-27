@@ -1,7 +1,7 @@
 from flask_restful import Resource, marshal, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required
-from ...models import Chapter
-from ...database import db
+from ...data.models import Chapter
+from ...data.database import db
 
 from .QuizResource import quiz_fields
 

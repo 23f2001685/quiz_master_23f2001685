@@ -1,8 +1,8 @@
 from flask import jsonify
 from flask_restful import Resource, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required
-from ...models import Subject
-from ...database import db
+from ...data.models import Subject
+from ...data.database import db
 
 from .ChapterResource import chapter_fields
 

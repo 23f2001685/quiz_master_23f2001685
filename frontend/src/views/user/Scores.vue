@@ -1,7 +1,11 @@
 <template>
   <div class="container mt-4">
-    <h2 class="text-center mb-4  fw-bold">My Quiz Scores</h2>
-
+      <button v-if="attempts.length > 0" class="btn btn-info float-end" @click="exportAttempts" :disabled="isExporting">
+        <span v-if="isExporting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        {{ isExporting ? 'Exporting...' : 'Export as CSV' }}
+      </button>
+      <Toast ref="toastRef" />
+    <h2 class="text-center mb-4 fw-bold">My Quiz Scores</h2>
     <div v-if="isLoading" class="text-center">
       <Spinner :active="true" />
       <p class="mt-3 text-black">Loading scores...</p>
@@ -85,16 +89,19 @@
 <script>
 import axios from 'axios';
 import Spinner from '../../components/Spinner.vue';
+import Toast from '../../components/Toast.vue';
 
 export default {
   name: 'Scores',
   components: {
     Spinner,
+    Toast
   },
   data() {
     return {
       attempts: [],
       isLoading: true,
+      isExporting: false,
       error: null,
       pagination: {
         page: 1,
@@ -107,6 +114,22 @@ export default {
     };
   },
   methods: {
+    async exportAttempts() {
+      this.isExporting = true;
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await axios.post('http://localhost:5000/api/quiz-attempts/export', {}, {
+          headers: { 'Authentication-Token': token }
+        });
+        this.$refs.toastRef.showToast('Success', response.data.message, 'success');
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || 'Failed to start export.';
+        this.$refs.toastRef.showToast('Error!', errorMessage, 'error');
+        console.error('Export error:', err);
+      } finally {
+        this.isExporting = false;
+      }
+    },
     async fetchAttempts(page = 1) {
       this.isLoading = true;
       this.error = null;

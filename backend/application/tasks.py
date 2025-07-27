@@ -4,8 +4,8 @@ from sqlalchemy import func
 import io
 import csv
 
-from application.models import User, Quiz, QuizAttempt, Subject, Chapter
-from application.database import db
+from application.data.models import User, Quiz, QuizAttempt, Subject, Chapter
+from application.data.database import db
 
 # Import celery instance
 from celery_config import celery_app, flask_app

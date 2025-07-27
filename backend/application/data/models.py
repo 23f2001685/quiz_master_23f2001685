@@ -2,7 +2,7 @@ from datetime import datetime
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship
 
-from application.database import db, Base
+from application.data.database import db, Base
 
 
 roles_users = db.Table('roles_users',
@@ -30,7 +30,7 @@ class User(db.Model, UserMixin, Base):
 
     # Relationships
     roles = relationship('Role', secondary=roles_users,
-                        backref=db.backref('users', lazy='dynamic'))
+                        backref=db.backref('users', lazy='subquery'))
     quiz_attempts = relationship('QuizAttempt', back_populates='user')
 
     def __repr__(self):
@@ -58,7 +58,7 @@ class Chapter(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     subject = relationship('Subject', back_populates='chapters')
-    quizzes = relationship('Quiz', back_populates='chapter', cascade='all, delete-orphan')
+    quizzes = relationship('Quiz', back_populates='chapter', cascade='all, delete-orphan', lazy='subquery')
 
 class Quiz(db.Model):
     """
@@ -75,7 +75,7 @@ class Quiz(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
-    chapter = relationship('Chapter', back_populates='quizzes')
+    chapter = relationship('Chapter', back_populates='quizzes', lazy='subquery')
     questions = relationship('Question', back_populates='quiz', cascade='all, delete-orphan')
     attempts = relationship('QuizAttempt', back_populates='quiz', cascade="all, delete-orphan")
 
@@ -113,4 +113,4 @@ class QuizAttempt(db.Model):
 
     # Relationships
     user = relationship('User', back_populates='quiz_attempts')
-    quiz = relationship('Quiz', back_populates='attempts')
+    quiz = relationship('Quiz', back_populates='attempts', lazy='subquery')

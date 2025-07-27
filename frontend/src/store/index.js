@@ -223,12 +223,15 @@ const store = createStore({
     async deactivateUser({ commit, dispatch }, userId) {
       try {
         commit('SET_LOADING', true);
-        await axios.put(`http://localhost:5000/api/users/${userId}/deactivate`, {}, {
+        const res = await axios.put(`http://localhost:5000/api/users/${userId}/deactivate`, {}, {
           headers: {
             'Authentication-Token': localStorage.getItem('auth_token'),
           },
         });
-        dispatch('fetchUsers');
+        commit('SET_USERS', res.data.users);
+        console.log(res.data.users);
+
+        commit('SET_ERROR', null);
       } catch (error) {
         console.error('Error deactivating user:', error.response?.data?.message || error.message);
         throw error;

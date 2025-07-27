@@ -16,7 +16,7 @@ def create_celery_app():
     app.config.from_object(LocalDevConfig)
 
     # Initialize database with app
-    from application.database import db
+    from application.data.database import db
     db.init_app(app)
 
     # Initialize mail with app
@@ -27,8 +27,8 @@ def create_celery_app():
 
     # Configure Celery
     celery.conf.update(
-        broker_url='redis://localhost:6379/0',
-        result_backend='redis://localhost:6379/0',
+        broker_url='redis://localhost:6379/1',
+        result_backend='redis://localhost:6379/2',
         timezone='UTC',
         task_serializer='json',
         accept_content=['json'],

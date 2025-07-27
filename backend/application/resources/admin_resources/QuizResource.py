@@ -2,8 +2,8 @@ from datetime import datetime
 from flask import jsonify
 from flask_restful import Resource, marshal, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required, roles_accepted
-from ...models import Chapter, Quiz
-from ...database import db
+from ...data.models import Chapter, Quiz
+from ...data.database import db
 from .QuestionResource import question_fields
 
 

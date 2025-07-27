@@ -6,7 +6,7 @@ from flask_restful import Resource, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required
 from flask_security.utils import hash_password, verify_password
 
-from ..database import db
+from ..data.database import db
 
 user_fields = {
     'email': fields.String,

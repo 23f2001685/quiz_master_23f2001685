@@ -1,3 +1,5 @@
+from time import perf_counter_ns
+
 from flask import request, jsonify
 from flask_login import current_user
 from flask_restful import fields, marshal_with, Resource
@@ -5,8 +7,15 @@ from flask_security import auth_required, roles_accepted
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
-from application.models import Chapter, QuizAttempt, Subject, User, Quiz, db
+from application.data.models import Chapter, QuizAttempt, Subject, User, Quiz, db
 from application.tasks import export_user_attempts_csv
+from application.data.data_access import (
+    get_quiz_attempt_by_id,
+    get_all_quiz_attempts,
+    get_quiz_attempts_by_user,
+    get_quiz_attempts_with_everything,
+    get_quiz_attempts_by_user_ordered_by_timestamp_desc
+)
 
 class QuizAttemptResource(Resource):
     # Individual quiz attempt
@@ -14,7 +23,7 @@ class QuizAttemptResource(Resource):
     @auth_required()
     def get(self, attempt_id):
         try:
-            attempt = QuizAttempt.query.get_or_404(attempt_id)
+            attempt = get_quiz_attempt_by_id(attempt_id)
 
             # Users own attempts
             user = current_user
@@ -41,7 +50,9 @@ class QuizAttemptResource(Resource):
     @roles_accepted('admin')
     def delete(self, attempt_id):
         try:
-            attempt = QuizAttempt.query.get_or_404(attempt_id)
+            attempt = get_quiz_attempt_by_id(attempt_id)
+            if not attempt:
+                return {'message': 'Quiz attempt not found'}, 404
 
             db.session.delete(attempt)
             db.session.commit()
@@ -251,20 +262,16 @@ class UserStatsResource(Resource):
         # Get all quiz attempts for a user
         try:
 
-            if current_user.has_role('admin') and current_user.id != user_id:
+            if not current_user.has_role('admin') and current_user.id != user_id:
                 return {'message': 'Access denied'}, 403
-
             user = User.query.get_or_404(user_id)
-
-            query = QuizAttempt.query.filter_by(user_id=user_id)
-
-            query = query.order_by(QuizAttempt.timestamp.desc())
+            query = get_quiz_attempts_by_user_ordered_by_timestamp_desc(user_id)
 
             attempts = [{
                 'id': attempt.id,
                 'timestamp': attempt.timestamp.isoformat(),
                 'subject_name': attempt.quiz.chapter.subject.name if attempt.quiz and attempt.quiz.chapter else None
-            } for attempt in query.all()]
+            } for attempt in query]
 
             return {
                 'user_id': user_id,
@@ -284,8 +291,14 @@ class QuizAttemptsStatsResource(Resource):
     def get(self):
         try:
             # Get all quiz attempts with quiz and subject information
-            attempts = db.session.query(QuizAttempt).join(Quiz).join(Chapter).join(Subject).all()
 
+            start = perf_counter_ns()
+            print("╭──────────────────────────────────────╮")
+            attempts = get_quiz_attempts_with_everything()
+            stop = perf_counter_ns()
+            x = f"Time Taken: {stop - start} ns"
+            print(f"│{x.center(38)}│")
+            print("╰──────────────────────────────────────╯")
             # Calculate subject-wise top scores
             subject_top_scores = {}
             subject_attempts = {}

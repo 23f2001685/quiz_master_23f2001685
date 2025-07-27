@@ -7,16 +7,10 @@ from flask_security import Security, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password
 
 from application.config import LocalDevConfig
-from application.database import db
-from application.models import User, Role
-from application.resources.quiz_attempt import (
-    ExportUserAttemptsResource,
-    QuizAttemptResource,
-    QuizAttemptsResource,
-    QuizAttemptsStatsResource,
-    UserQuizAttemptsResource,
-    UserStatsResource
-)
+from application.data import models
+from application.data.database import db
+from application.data.models import User, Role
+from application import cache
 
 migrate = Migrate()
 cors = CORS()
@@ -32,17 +26,26 @@ def create_app():
     api = Api(app)
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, datastore)
-
     app.app_context().push()
-    return app, api
+    cache.init_app(app)
+    app.app_context().push()
+    return app, api, cache
 
-app, api = create_app()
+app, api, cache = create_app()
 
 
 # Importing routes
 from application.routes import *
 from application.resources.auth import UserRegisterResource, UserProfileResource
 from application.resources.admin_resources import ChapterResource, QuestionResource, QuizResource, SubjectResource, UserDeactivateResource, UserListResource
+from application.resources.quiz_attempt import (
+    ExportUserAttemptsResource,
+    QuizAttemptResource,
+    QuizAttemptsResource,
+    QuizAttemptsStatsResource,
+    UserQuizAttemptsResource,
+    UserStatsResource
+)
 
 api.add_resource(UserRegisterResource, '/api/register')
 api.add_resource(UserProfileResource, '/api/profile')

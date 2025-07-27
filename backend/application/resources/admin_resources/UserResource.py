@@ -1,14 +1,15 @@
 from flask_restful import Resource
 from flask_security import auth_required, roles_required
-from ...models import Role, User, roles_users
-from ...database import db
-
+from ...data.models import Role, User, roles_users
+from ...data.database import db
+from ...data.data_access import get_all_users
+from application import cache
 
 class UserListResource(Resource):
     @auth_required('token')
     @roles_required('admin')
     def get(self):
-        users = User.query.join(roles_users).join(Role).filter(Role.name == 'user').all()
+        users = get_all_users()
         return [{
             'id': user.id,
             'email': user.email,
@@ -29,4 +30,18 @@ class UserDeactivateResource(Resource):
             return {'message': 'User does not have the "user" role'}, 400
         user.active = not user.active
         db.session.commit()
-        return {'message': f'User {user.email} deactivated successfully'}, 200
+        db.session.refresh(user)
+        cache.delete_memoized(get_all_users)
+        all_users = User.query.join(roles_users).join(Role).filter(Role.name == 'user').all()
+        return {
+            'message': f'User {user.email} deactivated successfully',
+            'users': [{
+                'id': u.id,
+                'email': u.email,
+                'full_name': u.full_name,
+                'qualification': u.qualification,
+                'dob': u.dob.isoformat() if u.dob else None,
+                'active': u.active,
+                'roles': [role.name for role in u.roles]
+            } for u in all_users]
+        }, 200
