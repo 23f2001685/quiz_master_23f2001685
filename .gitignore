@@ -5,3 +5,9 @@ backend/application/__pycache__
 .venv
 .vscode
 *.pyc
+backend/instance
+backend/migrations/__pycache__
+backend/migrations/versions/__pycache__
+backend/application/__pycache__
+backend/application/data/__pycache__
+backend/application/resources/__pycache__
