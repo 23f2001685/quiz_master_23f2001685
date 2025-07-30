@@ -33,8 +33,9 @@
               </tbody>
             </table>
 
-            <div class="text-center">
-              <button class="btn btn-sm btn-pink" @click="addNewQuestion(quiz)">+ Question</button>
+            <div class="text-center d-flex justify-content-around align-items-center">
+              <button class="btn btn-sm me-2" :class="quiz.is_active ? 'btn-danger' : 'btn-success'" @click="toggleQuiz(quiz)">{{ quiz.is_active ? 'Deactivate' : 'Activate' }}</button>
+              <button class="btn btn-sm btn-pink" @click="addNewQuestion(quiz); console.log(quiz)">+ Question</button>
             </div>
           </div>
         </div>
@@ -49,7 +50,7 @@
       @cancel="closeModal">
       <form class="mx-5" @submit.prevent="">
         <div class="mb-3 form-floating">
-          <input type="text" v-model="newQuiz.title" name="remarks" id="remarks" class="form-control"
+          <input type="text" v-model="newQuiz.title" name="title" id="title" class="form-control"
             placeholder="title" required />
           <label for="remarks" class="form-label">Title:</label>
         </div>
@@ -60,12 +61,13 @@
         </div>
         <div class="mb-3">
           <label for="chapter" class="form-label">Select Chapter:</label>
-          <select v-if="getChapters && getChapters.length" id="chapter" v-model="newQuiz.chapter_id" name="chapter"
+            <select v-if="getChapters && getChapters.length" id="chapter" v-model="newQuiz.chapter_id" name="chapter"
             class="form-select" required>
+            <option disabled value="">Select a chapter</option>
             <option v-for="chapter in getChapters" :key="chapter.id" :value="chapter.id">
               {{ chapter.name }} ({{ chapter.subject.name }})
             </option>
-          </select>
+            </select>
           <div v-else class="text-muted">No chapters available</div>
         </div>
         <div class="mb-3">
@@ -189,7 +191,8 @@ export default {
       'addQuestion',
       'updateQuestion',
       'deleteQuestion',
-      'performSearch'
+      'performSearch',
+      'toggleQuiz',
     ]),
     editQuiz(quiz) {
       this.updateQuiz({ quiz: quiz })

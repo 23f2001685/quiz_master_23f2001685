@@ -24,7 +24,9 @@ const store = createStore({
       chapter_id: null,
       date_of_quiz: "",
       time_duration: 60,
-      is_active: true
+      is_active: true,
+      chapter: '',
+      subject: '',
     },
     subjectId: null,
     modalAction: 'New Subject',
@@ -453,7 +455,7 @@ const store = createStore({
     },
     updateQuiz({ commit, state }, {quiz}) {
       const date = new Date(quiz.date_of_quiz);
-      const formattedDate = date.toISOString();
+      const formattedDate = date.toISOString().split(':')[0] + ":" + date.toISOString().split(':')[1];
       commit('SET_NEW_QUIZ', {
         chapter_id: quiz.chapter_id,
         date_of_quiz: formattedDate,
@@ -461,9 +463,29 @@ const store = createStore({
         remarks: quiz.remarks,
         is_active: quiz.is_active,
         id: quiz.id,
+        title: quiz.title,
       });
       commit('SET_QUIZ_MODAL_ACTION', 'Edit Quiz');
       commit('SET_MODAL_VISIBLE', true);
+    },
+    async toggleQuiz({ commit, dispatch }, quiz) {
+      try {
+        commit('SET_LOADING', true);
+        const response = await axios.put(
+          `http://localhost:5000/api/quizzes/${quiz.id}/toggle`,
+          {},
+          {
+            headers: {
+              'Authentication-Token': localStorage.getItem('auth_token'),
+            },
+          }
+        );
+        dispatch('fetchQuizzes');
+      } catch (error) {
+        console.error('Error toggling quiz:', error.response?.data?.message || error.message);
+      } finally {
+        commit('SET_LOADING', false);
+      }
     },
     async deleteQuiz({ commit, dispatch }, { quizId }) {
       try {

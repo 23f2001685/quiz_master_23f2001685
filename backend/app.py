@@ -38,6 +38,7 @@ app, api, cache = create_app()
 from application.routes import *
 from application.resources.auth import UserRegisterResource, UserProfileResource
 from application.resources.admin_resources import ChapterResource, QuestionResource, QuizResource, SubjectResource, UserDeactivateResource, UserListResource
+from application.resources.admin_resources.QuizActivationResource import QuizActivationResource
 from application.resources.quiz_attempt import (
     ExportUserAttemptsResource,
     QuizAttemptResource,
@@ -54,6 +55,7 @@ api.add_resource(UserDeactivateResource, '/api/users/<int:user_id>/deactivate')
 api.add_resource(SubjectResource, '/api/subjects', '/api/subjects/<int:subject_id>')
 api.add_resource(ChapterResource, '/api/subjects/<int:subject_id>/chapters', '/api/subjects/<int:subject_id>/chapters/<int:c_id>')
 api.add_resource(QuizResource, '/api/quizzes', '/api/quizzes/<int:quiz_id>')
+api.add_resource(QuizActivationResource, '/api/quizzes/<int:quiz_id>/toggle')
 api.add_resource(QuestionResource, '/api/quizzes/<int:quiz_id>/questions', '/api/quizzes/<int:quiz_id>/questions/<int:question_id>')
 
 api.add_resource(QuizAttemptsResource, '/api/quiz-attempts')

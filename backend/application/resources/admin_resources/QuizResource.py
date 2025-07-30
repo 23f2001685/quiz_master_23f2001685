@@ -1,7 +1,7 @@
 from datetime import datetime
-from flask import jsonify
 from flask_restful import Resource, marshal, marshal_with, reqparse, fields
 from flask_security import auth_required, roles_required, roles_accepted
+from sqlalchemy.orm import joinedload
 from ...data.models import Chapter, Quiz
 from ...data.database import db
 from .QuestionResource import question_fields
@@ -32,18 +32,21 @@ class QuizResource(Resource):
 
     @auth_required('token')
     @roles_accepted('admin', 'user')
-    @marshal_with(quiz_fields)
     def get(self, quiz_id=None):
-
         if quiz_id:
-            quiz = Quiz.query.get(quiz_id)
+            quiz = Quiz.query.options(
+                joinedload(Quiz.chapter).joinedload(Chapter.subject),
+                joinedload(Quiz.questions)
+            ).get(quiz_id)
             if not quiz:
                 return {"message": f"Quiz with ID {quiz_id} not found"}, 404
-            return jsonify(self.serialize_quiz(quiz))
+            return marshal(quiz, quiz_fields)
 
-
-        quizzes = Quiz.query.all()
-        return quizzes, 200
+        quizzes = Quiz.query.options(
+            joinedload(Quiz.chapter).joinedload(Chapter.subject),
+            joinedload(Quiz.questions)
+        ).all()
+        return marshal(quizzes, quiz_fields), 200
 
     @auth_required('token')
     @roles_required('admin')

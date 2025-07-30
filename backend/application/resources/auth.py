@@ -1,10 +1,10 @@
 from datetime import datetime
 from flask import request
 from flask import current_app as app
-from flask_login import current_user, login_user
-from flask_restful import Resource, marshal_with, reqparse, fields
+from flask_login import current_user
+from flask_restful import Resource, fields
 from flask_security import auth_required, roles_required
-from flask_security.utils import hash_password, verify_password
+from flask_security.utils import hash_password
 
 from ..data.database import db
 

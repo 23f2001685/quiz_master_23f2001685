@@ -16,7 +16,7 @@
         <button type="submit" class="btn btn-primary w-100">Login</button>
       </form>
       <div class="text-center mt-3">
-            <p>Don't have an account? <router-link to="/Register" class="text-primary">Register here</router-link></p>
+        <p>Don't have an account? <router-link to="/Register" class="text-primary">Register here</router-link></p>
       </div>
     </div>
   </div>
@@ -78,7 +78,7 @@ export default {
         }
       } catch (error) {
         this.isActive = false
-        alert(`Invalid credentials. Please try again. ${error.response?.data?.message || error.message}`);
+        alert(`${error.response?.data?.response?.errors[0] || error.message}`);
       }
     },
   },
