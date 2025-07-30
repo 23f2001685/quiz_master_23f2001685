@@ -85,12 +85,16 @@ export default {
           }
         })
           .then(res => {
-            this.newChapter = { name: "", description: "" }
+            this.newChapter = { name: "", description: "", subject_id: this.subject.id }
             this.isModalVisible = false
             this.fetchChapters()
           })
           .catch(err => {
             console.error("Cannot edit chapter", err);
+          })
+          .finally(() => {
+            this.isLoading = false
+            this.id = null
           })
       } else {
         try {
@@ -102,7 +106,7 @@ export default {
               "Authentication-Token": localStorage.getItem('auth_token')
             }
           })
-          this.newChapter = { name: "", description: "" }
+          this.newChapter = { name: "", description: "", subject_id: this.subject.id }
           this.isModalVisible = false
           this.fetchChapters()
         } catch (err) {
