@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 from flask import Flask
 from flask_mail import Mail
 from dotenv import load_dotenv
@@ -36,11 +37,13 @@ def create_celery_app():
         beat_schedule={
             'daily-quiz-reminders': {
                 'task': 'application.tasks.send_daily_quiz_reminders',
-                'schedule': 60.0,  # Every minute for testing
+                'schedule': crontab(hour=20, minute=0),  # Every day at 8:00 PM
+                # 'schedule': '60',  # Every minute
             },
             'monthly-performance-reports': {
                 'task': 'application.tasks.send_monthly_performance_reports',
-                'schedule': 120.0,  # Every 2 minutes for testing
+                'schedule': crontab(day_of_month=1, hour=0, minute=0),  # Every month on the 1st at midnight
+                # 'schedule': '120',  # Every two minutes
             },
         },
         beat_scheduler='celery.beat:PersistentScheduler',

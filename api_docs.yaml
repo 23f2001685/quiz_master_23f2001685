@@ -1,0 +1,705 @@
+openapi: 3.0.3
+info:
+  title: Quiz Master API
+  description: API for the Quiz Master application, a multi-user exam preparation site.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+paths:
+  /login:
+    post:
+      summary: User Login
+      description: Authenticates a user and returns an authentication token.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          authentication_token:
+                            type: string
+        '400':
+          description: Invalid credentials
+  /api/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account.
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Invalid input
+  /me:
+    get:
+      summary: Get current user profile
+      description: Fetches the profile information of the currently authenticated user.
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+  /api/users:
+    get:
+      summary: List all users
+      description: Retrieves a list of all registered users. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /api/users/{user_id}/deactivate:
+    put:
+      summary: Deactivate a user
+      description: Deactivates a specific user account. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User deactivated successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+  /api/subjects:
+    get:
+      summary: Get all subjects
+      description: Retrieves a list of all subjects with their chapters and quizzes.
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of subjects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subject'
+    post:
+      summary: Create a new subject
+      description: Adds a new subject to the database. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Subject created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+  /api/subjects/{subject_id}:
+    put:
+      summary: Update a subject
+      description: Updates an existing subject's details. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Subject updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+    delete:
+      summary: Delete a subject
+      description: Deletes a subject. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Subject deleted successfully
+  /api/subjects/{subject_id}/chapters:
+    post:
+      summary: Create a new chapter
+      description: Adds a new chapter to a subject. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Chapter created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+  /api/subjects/{subject_id}/chapters/{c_id}:
+    put:
+      summary: Update a chapter
+      description: Updates an existing chapter's details. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: c_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Chapter updated
+    delete:
+      summary: Delete a chapter
+      description: Deletes a chapter. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: c_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Chapter deleted successfully
+  /api/quizzes:
+    get:
+      summary: Get all quizzes
+      description: Retrieves a list of all quizzes.
+      tags:
+        - Quizzes
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quiz'
+    post:
+      summary: Create a new quiz
+      description: Adds a new quiz. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewQuiz'
+      responses:
+        '201':
+          description: Quiz created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+  /api/quizzes/{quiz_id}:
+    put:
+      summary: Update a quiz
+      description: Updates an existing quiz's details. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewQuiz'
+      responses:
+        '200':
+          description: Quiz updated
+    delete:
+      summary: Delete a quiz
+      description: Deletes a quiz. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Quiz deleted successfully
+  /api/quizzes/{quiz_id}/questions:
+    post:
+      summary: Add a question to a quiz
+      description: Adds a new question to a specific quiz. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '201':
+          description: Question added
+  /api/quizzes/{quiz_id}/questions/{question_id}:
+    put:
+      summary: Update a question
+      description: Updates an existing question. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '200':
+          description: Question updated
+    delete:
+      summary: Delete a question
+      description: Deletes a question from a quiz. (Admin only)
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Question deleted successfully
+  /api/quiz-attempts:
+    get:
+      summary: Get user's quiz attempts
+      description: Retrieves a paginated list of the current user's quiz attempts.
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: A paginated list of quiz attempts
+    post:
+      summary: Submit a quiz attempt
+      description: Submits the user's answers for a quiz and records the attempt.
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quiz_id:
+                  type: integer
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: integer
+      responses:
+        '200':
+          description: Quiz submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizAttempt'
+  /api/users/{user_id}/stats:
+    get:
+      summary: Get user statistics
+      description: Retrieves performance statistics for a specific user.
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User statistics
+  /api/quiz-attempts/stats:
+    get:
+      summary: Get admin summary statistics
+      description: Retrieves system-wide statistics for the admin dashboard.
+      tags:
+        - Admin
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Admin summary statistics
+  /api/quiz-attempts/export:
+    post:
+      summary: Export user attempts
+      description: Triggers a background task to export the user's quiz attempts to a CSV file and email it to them.
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '202':
+          description: Export task accepted
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authentication-Token
+  schemas:
+    NewUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        full_name:
+          type: string
+        qualification:
+          type: string
+        dob:
+          type: string
+          format: date
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        qualification:
+          type: string
+        dob:
+          type: string
+          format: date
+        active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+    Subject:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        chapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chapter'
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: integer
+        subject_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        quizzes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Quiz'
+    NewQuiz:
+      type: object
+      properties:
+        title:
+          type: string
+        chapter_id:
+          type: integer
+        date_of_quiz:
+          type: string
+          format: date-time
+        time_duration:
+          type: integer
+        remarks:
+          type: string
+        is_active:
+          type: boolean
+    Quiz:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        chapter:
+          type: string
+        subject:
+          type: string
+        date_of_quiz:
+          type: string
+          format: date-time
+        time_duration:
+          type: integer
+        remarks:
+          type: string
+        is_active:
+          type: boolean
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        quiz_id:
+          type: integer
+        question_statement:
+          type: string
+        option1:
+          type: string
+        option2:
+          type: string
+        option3:
+          type: string
+        option4:
+          type: string
+        correct_option:
+          type: integer
+    QuizAttempt:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        quiz_id:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        total_score:
+          type: number
+          format: float
+        max_score:
+          type: number
+          format: float
+        percentage:
+          type: number
+          format: float
+tags:
+  - name: Authentication
+    description: User registration and login
+  - name: Admin
+    description: Operations restricted to administrators
+  - name: Users
+    description: Operations for general users
+  - name: Quizzes
+    description: Operations related to quizzes

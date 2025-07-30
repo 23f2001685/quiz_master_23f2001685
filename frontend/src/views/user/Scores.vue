@@ -39,7 +39,7 @@
               <td>{{ formatDate(attempt.timestamp) }}</td>
               <td>{{ attempt.total_score }} / {{ attempt.max_score }}</td>
               <td>
-                {{ attempt.percentage.toFixed(2) }}%
+                <div class="text-end">{{ attempt.percentage.toFixed(2) }}%</div>
                 <div class="progress" style="height: 3px; background-color: rgba(0,0,0,0.2);">
                   <div
                     :class="getProgressBarClass(attempt.percentage)"
