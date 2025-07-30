@@ -79,9 +79,9 @@ if __name__ == "__main__":
                 roles=['admin']
             )
 
-        if not app.security.datastore.find_user(email="user1@somemail.com"):
+        if not app.security.datastore.find_user(email="ishantkumar761@gmail.com"):
             app.security.datastore.create_user(
-                email="user1@somemail.com",
+                email="ishantkumar761@gmail.com",
                 password = hash_password("user@1234"),
                 full_name = "User 1",
                 roles=['user']

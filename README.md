@@ -48,3 +48,12 @@ celery -A celery_config.celery_app worker --loglevel=info --pool=solo
 cd backend
 celery -A celery_config.celery_app beat --loglevel=info
 ```
+
+# Info
+Admin Login
+- email:    admin@quizmaster.com
+- password: admin@1234
+
+User Login
+- email:    ishantkumar761@gmail.com
+- password: user@1234
