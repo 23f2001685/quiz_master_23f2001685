@@ -362,8 +362,14 @@ const store = createStore({
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Error saving subject');
         commit('SET_LOADING', false)
+      } finally {
+        commit('SET_NEW_SUBJECT', { name: '', description: '' });
+        commit('SET_MODAL_VISIBLE', false);
+        commit('SET_SUBJECT_ID', null);
+        commit('SET_MODAL_ACTION', 'New Subject');
+        commit('SET_ERROR', null);
+        commit('SET_LOADING', false)
       }
-      commit('SET_LOADING', false)
     },
     editSubject({ commit }, subject) {
       commit('SET_NEW_SUBJECT', {
