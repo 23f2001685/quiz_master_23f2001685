@@ -10,43 +10,50 @@ First open folder in vs code
 ## Install required dependencies
 For Backend & Celery
 ```sh
-pip install -r requirements.txt
+$ py -m venv .venv
+$ .venv\Scripts\Activate.ps1
+$ pip install -r requirements.txt
 ```
 
 Secondly, you need to migrate your database
 ```sh
-flask db upgrade
-flask db migrate -m "Initial database setup"
+.venv\Scripts\Activate.ps1
+$ cd backend
+$ flask db upgrade
+$ flask db migrate -m "Initial database setup"
 ```
 
 For Frontend
 ```sh
-cd frontend
-npm i
+$ cd frontend
+$ npm i
 ```
 
 Then run the app using following command
 ## Run Backend
 ```sh
-cd backend
-py app.py
+$ .venv\Scripts\Activate.ps1
+$ cd backend
+$ py app.py
 ```
 ## Run Frontend
 ```sh
-cd frontend
-npm run dev
+$ cd frontend
+$ npm run dev
 ```
 
 ## Run celery (for workers)
 ```sh
-cd backend
-celery -A celery_config.celery_app worker --loglevel=info --pool=solo
+$ .venv\Scripts\Activate.ps1
+$ cd backend
+$ celery -A celery_config.celery_app worker --loglevel=info --pool=solo
 ```
 
 ## Run celery (for beats)
 ```sh
-cd backend
-celery -A celery_config.celery_app beat --loglevel=info
+$ .venv\Scripts\Activate.ps1
+$ cd backend
+$ celery -A celery_config.celery_app beat --loglevel=info
 ```
 
 # Info
